@@ -1,6 +1,9 @@
 using ListaDeTarefas;
 using ListaDeTarefas.Data;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -9,7 +12,28 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Configura PostgreSQL (Lê a string do Render ou local)
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection");
+var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection");
+var npgsqlBuilder = new NpgsqlConnectionStringBuilder(rawConnectionString ?? string.Empty);
+
+// opcional: força usar IPv4 do DNS se disponível (Supabase resolve para IPv6 em alguns ambientes)
+try
+{
+    if (!IPAddress.TryParse(npgsqlBuilder.Host, out _))
+    {
+        var addresses = Dns.GetHostAddresses(npgsqlBuilder.Host)
+            .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
+            .ToArray();
+
+        if (addresses.Length > 0)
+            npgsqlBuilder.Host = addresses[0].ToString();
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"⚠️ Não foi possível resolver DNS para host: {ex.Message}");
+}
+
+var connectionString = npgsqlBuilder.ConnectionString;
 builder.Services.AddDbContext<ListaDeTarefasContext>(options =>
     options.UseNpgsql(connectionString));
 
