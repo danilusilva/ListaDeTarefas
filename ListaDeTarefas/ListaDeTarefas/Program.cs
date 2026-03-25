@@ -40,7 +40,10 @@ while (retries-- > 0)
 
 var connectionString = npgsqlBuilder.ConnectionString;
 builder.Services.AddDbContext<ListaDeTarefasContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.CommandTimeout(60); // evita timeout prematuro no cold start do Supabase
+    }));
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
