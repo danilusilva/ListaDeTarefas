@@ -8,12 +8,8 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configura PostgreSQL (Lê a string do Render ou Local)
+// 1. Configura PostgreSQL (Lê a string do Render ou local)
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection");
-if (!string.IsNullOrEmpty(connectionString) && !connectionString.Contains("Prefer IPv4"))
-{
-    connectionString += ";Prefer IPv4=true";
-}
 builder.Services.AddDbContext<ListaDeTarefasContext>(options =>
     options.UseNpgsql(connectionString));
 

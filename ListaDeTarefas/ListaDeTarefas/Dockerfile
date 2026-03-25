@@ -19,4 +19,4 @@ RUN chmod +x entrypoint.sh
 ENV ASPNETCORE_URLS=http://+:10000
 EXPOSE 10000
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["dotnet", "ListaDeTarefas.dll"]
