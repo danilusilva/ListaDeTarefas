@@ -15,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 var npgsqlBuilder = new NpgsqlConnectionStringBuilder(rawConnectionString ?? string.Empty);
 
+// Força uso de IPv4 para compatibilidade com Render
+npgsqlBuilder["AddressFamily"] = "InterNetwork";
+
 // opcional: força usar IPv4 do DNS se disponível (Supabase resolve para IPv6 em alguns ambientes)
 try
 {
