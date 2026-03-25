@@ -15,9 +15,6 @@ var builder = WebApplication.CreateBuilder(args);
 var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 var npgsqlBuilder = new NpgsqlConnectionStringBuilder(rawConnectionString ?? string.Empty);
 
-// Força uso de IPv4 para compatibilidade com Render
-npgsqlBuilder["HostAddrFamily"] = "InterNetwork";
-
 // opcional: força usar IPv4 do DNS se disponível (Supabase resolve para IPv6 em alguns ambientes)
 try
 {
@@ -36,7 +33,7 @@ catch (Exception ex)
     Console.WriteLine($"⚠️ Não foi possível resolver DNS para host: {ex.Message}");
 }
 
-var connectionString = npgsqlBuilder.ConnectionString;
+var connectionString = npgsqlBuilder.ConnectionString + ";AddressFamily=InterNetwork";
 builder.Services.AddDbContext<ListaDeTarefasContext>(options =>
     options.UseNpgsql(connectionString));
 
