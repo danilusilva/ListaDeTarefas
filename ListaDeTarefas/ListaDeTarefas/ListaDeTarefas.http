@@ -1,0 +1,6 @@
+@ListaDeTarefas_HostAddress = http://localhost:5253
+
+GET {{ListaDeTarefas_HostAddress}}/api/Tarefa
+Accept: application/json
+
+###

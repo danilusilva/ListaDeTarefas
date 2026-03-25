@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ListaDeTarefas/ListaDeTarefas.csproj" />
+  <Project Path="Tests/Tests.csproj" Id="9848bbe3-64be-4a28-90d1-eb837ee4df2d" />
+</Solution>
