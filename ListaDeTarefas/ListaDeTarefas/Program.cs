@@ -66,13 +66,15 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://lista-de-tarefas-five-lac.vercel.app", "http://localhost:5173")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
-
 var app = builder.Build();
+
+app.UseCors();
 
 // 4. Migrations Automáticas e Teste de Conexão
 using (var scope = app.Services.CreateScope())
@@ -120,7 +122,6 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
