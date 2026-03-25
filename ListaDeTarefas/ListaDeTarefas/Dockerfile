@@ -13,8 +13,10 @@ RUN dotnet publish -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
 ENV ASPNETCORE_URLS=http://+:10000
 EXPOSE 10000
 
-ENTRYPOINT ["dotnet", "ListaDeTarefas.dll"]
+ENTRYPOINT ["./entrypoint.sh"]
