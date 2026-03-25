@@ -15,25 +15,30 @@ var builder = WebApplication.CreateBuilder(args);
 var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 var npgsqlBuilder = new NpgsqlConnectionStringBuilder(rawConnectionString ?? string.Empty);
 
-// opcional: força usar IPv4 do DNS se disponível (Supabase resolve para IPv6 em alguns ambientes)
-try
+//Força usar IPv4 do DNS se disponível (Supabase resolve para IPv6 em alguns ambientes)
+var retries = 3;
+while (retries-- > 0)
 {
-    if (!IPAddress.TryParse(npgsqlBuilder.Host, out _))
+    try
     {
-        var addresses = Dns.GetHostAddresses(npgsqlBuilder.Host)
-            .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
-            .ToArray();
+        if (!IPAddress.TryParse(npgsqlBuilder.Host, out _))
+        {
+            var addresses = Dns.GetHostAddresses(npgsqlBuilder.Host)
+                .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
+                .ToArray();
 
-        if (addresses.Length > 0)
-            npgsqlBuilder.Host = addresses[0].ToString();
+            if (addresses.Length > 0)
+                npgsqlBuilder.Host = addresses[0].ToString();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️ Não foi possível resolver DNS para host: {ex.Message}");
+        Thread.Sleep(3000); // Espera 3 segundos antes de tentar novamente
     }
 }
-catch (Exception ex)
-{
-    Console.WriteLine($"⚠️ Não foi possível resolver DNS para host: {ex.Message}");
-}
 
-var connectionString = npgsqlBuilder.ConnectionString + ";AddressFamily=InterNetwork";
+var connectionString = npgsqlBuilder.ConnectionString;
 builder.Services.AddDbContext<ListaDeTarefasContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -112,7 +117,7 @@ using (var scope = app.Services.CreateScope())
             db.Database.Migrate();
             Console.WriteLine("✅ Migrações aplicadas!");
         }
-        
+
         db.Database.OpenConnection();
         db.Database.CloseConnection();
         Console.WriteLine("✅ Banco conectado com sucesso!");
@@ -125,7 +130,8 @@ using (var scope = app.Services.CreateScope())
 
 // 5. Swagger disponível também em Produção (Útil para debugar no Render)
 app.UseSwagger();
-app.UseSwaggerUI(c => {
+app.UseSwaggerUI(c =>
+{
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
     c.RoutePrefix = string.Empty; // Faz o Swagger abrir na raiz da URL do Render
 });
